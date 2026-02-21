@@ -93,3 +93,70 @@ export async function acceptInspection(
     return { error: "A apărut o eroare la acceptarea inspecției." };
   }
 }
+// 3. Aducem inspecțiile acceptate de un anumit mecanic (pentru a le putea finaliza)
+export async function getMechanicAcceptedInspections(mechanicId: string) {
+  try {
+    const inspections = await prisma.inspection.findMany({
+      where: {
+        mechanicId: mechanicId,
+        status: "ACCEPTED", // Aducem doar ce este în lucru
+      },
+      include: {
+        client: { select: { fullName: true } },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+    return inspections;
+  } catch (error) {
+    console.error("Eroare la aducerea inspecțiilor acceptate:", error);
+    return [];
+  }
+}
+
+// 4. Funcția prin care mecanicul trimite formularul/raportul
+export async function submitInspectionReport(
+  inspectionId: string,
+  reportDetails: string,
+) {
+  try {
+    await prisma.inspection.update({
+      where: { id: inspectionId },
+      data: {
+        status: "COMPLETED", // Schimbăm statusul pentru a înștiința clientul
+        reportDetails: reportDetails,
+      },
+    });
+    return { success: "Raportul a fost trimis clientului cu succes!" };
+  } catch (error) {
+    return { error: "A apărut o eroare la trimiterea raportului." };
+  }
+}
+// 5. Funcția pentru trimiterea raportului complex cu link-uri media
+export async function submitDetailedReport(
+  inspectionId: string,
+  data: {
+    reportDetails: string;
+    photosUrls?: string;
+    engineMediaUrl?: string;
+    diagnosticUrl?: string;
+    model3dUrl?: string;
+  },
+) {
+  try {
+    await prisma.inspection.update({
+      where: { id: inspectionId },
+      data: {
+        status: "COMPLETED", // Mașina este gata
+        reportDetails: data.reportDetails,
+        photosUrls: data.photosUrls,
+        engineMediaUrl: data.engineMediaUrl,
+        diagnosticUrl: data.diagnosticUrl,
+        model3dUrl: data.model3dUrl,
+      },
+    });
+    return { success: "Raportul complet a fost salvat și trimis clientului!" };
+  } catch (error) {
+    console.error(error);
+    return { error: "Eroare la salvarea în baza de date." };
+  }
+}

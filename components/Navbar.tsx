@@ -3,9 +3,11 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getSession, signOut } from "next-auth/react";
+import { usePathname } from "next/navigation"; // <-- 1. Am adăugat asta
 
 export default function Navbar() {
   const [session, setSession] = useState<any>(null);
+  const pathname = usePathname(); // <-- 2. Ascultăm pe ce pagină ne aflăm
 
   // Verificăm dacă utilizatorul este logat
   useEffect(() => {
@@ -14,7 +16,7 @@ export default function Navbar() {
       setSession(currentSession);
     }
     fetchSession();
-  }, []);
+  }, [pathname]); // <-- 3. I-am spus să ruleze verificarea de fiecare dată când se schimbă "pathname"
 
   return (
     <nav className="bg-white border-b border-gray-200 shadow-sm">
@@ -39,12 +41,20 @@ export default function Navbar() {
 
                 {/* Butoane specifice în funcție de ROL */}
                 {session.user?.role === "MECHANIC" ? (
-                  <Link
-                    href="/mechanic-dashboard"
-                    className="text-sm font-medium text-gray-700 hover:text-blue-600"
-                  >
-                    Panou Mecanic
-                  </Link>
+                  <>
+                    <Link
+                      href="/mechanic-dashboard"
+                      className="text-sm font-medium text-gray-700 hover:text-blue-600"
+                    >
+                      Cereri Noi
+                    </Link>
+                    <Link
+                      href="/mechanic-dashboard/my-tasks"
+                      className="text-sm font-medium px-3 py-1.5 bg-blue-50 text-blue-700 rounded-md hover:bg-blue-100"
+                    >
+                      Mașini în lucru
+                    </Link>
+                  </>
                 ) : (
                   <>
                     <Link

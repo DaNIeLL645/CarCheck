@@ -58,10 +58,16 @@ export default function MechanicDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <p className="text-xl font-medium text-gray-500 animate-pulse">
-          Se caută cereri noi...
-        </p>
+      <div className="flex flex-col sm:flex-row justify-between items-center mb-8 border-b border-gray-200 pb-4 gap-4">
+        <h1 className="text-3xl font-extrabold text-gray-900">
+          🔧 Panou Mecanic - Cereri Noi
+        </h1>
+        <button
+          onClick={() => router.push("/mechanic-dashboard/my-tasks")}
+          className="px-5 py-2.5 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+        >
+          Vezi mașinile în lucru →
+        </button>
       </div>
     );
   }

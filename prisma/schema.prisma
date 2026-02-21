@@ -20,16 +20,25 @@ model User {
 }
 
 model Inspection {
-  id          String   @id @default(uuid())
-  carUrl      String
-  carMake     String?
-  carModel    String?
-  price       Int?
-  status      String   @default("PENDING")
-  location    String
-  clientId    String
-  client      User     @relation("ClientInspections", fields: [clientId], references: [id])
-  mechanicId  String?
-  mechanic    User?    @relation("MechanicInspections", fields: [mechanicId], references: [id])
-  createdAt   DateTime @default(now())
+  id               String   @id @default(uuid())
+  carUrl           String
+  carMake          String?
+  carModel         String?
+  price            Int?
+  status           String   @default("PENDING")
+  location         String
+  clientId         String
+  client           User     @relation("ClientInspections", fields: [clientId], references: [id])
+  mechanicId       String?
+  mechanic         User?    @relation("MechanicInspections", fields: [mechanicId], references: [id])
+  
+  // --- CÂMPURI NOI PENTRU RAPORT COMPLEX ---
+  reportDetails    String?  // Textul general/concluzia
+  photosUrls       String?  // Aici vom salva link-urile pozelor (separate prin virgulă)
+  engineMediaUrl   String?  // Link către mp3 / mp4 cu sunetul motorului
+  diagnosticUrl    String?  // Link către poza/PDF-ul de la testerul auto
+  model3dUrl       String?  // Link pentru încărcarea 3D viitoare
+  // -----------------------------------------
+
+  createdAt        DateTime @default(now())
 }
