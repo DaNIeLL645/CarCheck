@@ -1,16 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { getSession } from "next-auth/react";
-import prisma from "@/lib/prisma"; // Atenție: Va trebui să facem un Server Action pentru a lua un singur raport sigur
-
-// Adaugă această funcție în actions/inspections.ts dacă nu o ai
-// export async function getInspectionById(id: string) {
-//   return await prisma.inspection.findUnique({ where: { id }, include: { mechanic: true } });
-// }
+import { useParams } from "next/navigation";
+// Am sters importurile nefolosite (getSession, useRouter, prisma)
 
 import { getInspectionById } from "@/actions/inspections";
+// IMPORTĂM BUTONUL NOU DE PDF AICI:
+import DownloadPdfButton from "@/components/DownloadPdfButton";
 
 export default function ViewReportPage() {
   const params = useParams();
@@ -34,6 +30,16 @@ export default function ViewReportPage() {
 
   return (
     <div className="max-w-3xl mx-auto py-12 px-4">
+      {/* --- PARTEA NOUĂ: ANTETUL CU BUTONUL DE DESCĂRCARE PDF --- */}
+      <div className="flex justify-between items-center mb-6 border-4 border-red-500 p-4">
+        <h1 className="text-2xl font-bold text-gray-800">
+          Raportul tău - TEST
+        </h1>
+        <button className="bg-red-500 text-white p-2">BUTON FALS</button>
+        <DownloadPdfButton inspection={inspection} />
+      </div>
+      {/* --------------------------------------------------------- */}
+
       <div className="bg-white border rounded-2xl shadow-lg overflow-hidden">
         <div className="bg-blue-600 p-6 text-white text-center">
           <h1 className="text-2xl font-bold">Raport Inspecție Auto</h1>
@@ -57,17 +63,10 @@ export default function ViewReportPage() {
             Constatări Mecanic:
           </h2>
           <div className="bg-gray-50 p-6 rounded-xl border border-gray-200 whitespace-pre-wrap text-gray-700 leading-relaxed">
-            {inspection.report ||
+            {/* Am pus și inspection.reportDetails și inspection.report în caz că ai folosit oricare din ele */}
+            {inspection.reportDetails ||
+              inspection.report ||
               "Nu există observații scrise pentru acest raport."}
-          </div>
-
-          <div className="mt-8 text-center">
-            <button
-              onClick={() => window.print()}
-              className="text-sm text-blue-600 hover:underline"
-            >
-              Descarcă sau printează raportul
-            </button>
           </div>
         </div>
       </div>

@@ -5,6 +5,10 @@ import { getSession } from "next-auth/react";
 import { getClientInspections } from "@/actions/inspections";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+// Importăm butonul de PDF
+import DownloadPdfButton from "@/components/DownloadPdfButton";
+// IMPORTĂM FORMULARUL DE RECENZII
+import ReviewForm from "@/components/ReviewForm";
 
 export default function MyInspectionsPage() {
   const [inspections, setInspections] = useState<any[]>([]);
@@ -117,9 +121,13 @@ export default function MyInspectionsPage() {
                 {/* RAPORTUL DETALIAT (Apare doar dacă e finalizată) */}
                 {insp.status === "COMPLETED" && (
                   <div className="mt-2 bg-gray-50 rounded-xl border border-gray-200 p-6">
-                    <h4 className="text-xl font-extrabold text-gray-900 mb-6 flex items-center gap-2">
-                      📋 Raport Inspecție
-                    </h4>
+                    {/* Antet Raport + Buton PDF */}
+                    <div className="flex justify-between items-center mb-6">
+                      <h4 className="text-xl font-extrabold text-gray-900 flex items-center gap-2">
+                        📋 Raport Inspecție
+                      </h4>
+                      <DownloadPdfButton inspection={insp} />
+                    </div>
 
                     {/* 1. Textul Raportului */}
                     {insp.reportDetails && (
@@ -168,7 +176,6 @@ export default function MyInspectionsPage() {
                           <h5 className="font-bold text-gray-700 mb-2 text-sm uppercase tracking-wide">
                             3. Sunet Motor
                           </h5>
-                          {/* Player video/audio generic suportat de browser */}
                           <video
                             controls
                             className="w-full h-auto rounded-md border border-gray-200 max-h-32"
@@ -219,6 +226,16 @@ export default function MyInspectionsPage() {
                         </div>
                       )}
                     </div>
+
+                    {/* --- FORMULARUL DE RECENZII --- */}
+                    {insp.mechanicId && (
+                      <ReviewForm
+                        inspectionId={insp.id}
+                        mechanicId={insp.mechanicId}
+                        hasReviewed={false}
+                      />
+                    )}
+                    {/* ---------------------------- */}
                   </div>
                 )}
               </div>

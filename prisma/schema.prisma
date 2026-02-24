@@ -8,15 +8,20 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
-  fullName  String
-  phone     String?
-  role      String   @default("CLIENT")
-  createdAt DateTime @default(now())
+  id             String       @id @default(uuid())
+  email          String       @unique
+  password       String
+  fullName       String
+  phone          String?
+  role           String       @default("CLIENT")
+  createdAt      DateTime     @default(now())
+  
+  // Relații existente
   clientOrders   Inspection[] @relation("ClientInspections")
   mechanicOrders Inspection[] @relation("MechanicInspections")
+  
+  // --- NOU: Relația pentru Recenziile primite de mecanic ---
+  reviews        Review[]     @relation("MechanicReviews")
 }
 
 model Inspection {
@@ -24,21 +29,45 @@ model Inspection {
   carUrl           String
   carMake          String?
   carModel         String?
-  price            Int?
+  price            Int?     @default(150) // Setăm prețul standard de 150 RON
   status           String   @default("PENDING")
   location         String
+  
   clientId         String
   client           User     @relation("ClientInspections", fields: [clientId], references: [id])
+  
   mechanicId       String?
   mechanic         User?    @relation("MechanicInspections", fields: [mechanicId], references: [id])
   
-  // --- CÂMPURI NOI PENTRU RAPORT COMPLEX ---
-  reportDetails    String?  // Textul general/concluzia
-  photosUrls       String?  // Aici vom salva link-urile pozelor (separate prin virgulă)
-  engineMediaUrl   String?  // Link către mp3 / mp4 cu sunetul motorului
-  diagnosticUrl    String?  // Link către poza/PDF-ul de la testerul auto
-  model3dUrl       String?  // Link pentru încărcarea 3D viitoare
-  // -----------------------------------------
+  reportDetails    String?
+  photosUrls       String?
+  engineMediaUrl   String?
+  diagnosticUrl    String?
+  model3dUrl       String?
+
+  review           Review?
+
+  // --- NOU PENTRU STRIPE ---
+  stripeSessionId  String?  @unique
+  paymentStatus    String   @default("UNPAID") // Va deveni "PAID" după plata cu succes
+  // -------------------------
 
   createdAt        DateTime @default(now())
+}
+
+// --- NOU: MODELUL PENTRU RECENZII ---
+model Review {
+  id           String     @id @default(uuid())
+  rating       Int        // O notă de la 1 la 5
+  comment      String?    // Comentariul clientului (opțional)
+  
+  // Legăm recenzia de o anumită inspecție (o inspecție = o singură recenzie)
+  inspectionId String     @unique
+  inspection   Inspection @relation(fields: [inspectionId], references: [id])
+  
+  // Legăm recenzia de mecanicul care a făcut inspecția
+  mechanicId   String
+  mechanic     User       @relation("MechanicReviews", fields: [mechanicId], references: [id])
+
+  createdAt    DateTime   @default(now())
 }
