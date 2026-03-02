@@ -1,43 +1,69 @@
 "use server";
 
 import { PrismaClient } from "@prisma/client";
-// IMPORTĂM RESEND ȘI TEMPLATE-UL NOSTRU DE EMAIL
 import { Resend } from "resend";
 import StatusEmail from "@/components/emails/StatusEmail";
 
 const prisma = new PrismaClient();
-// Inițializăm Resend cu cheia ta (ideal ar fi process.env.RESEND_API_KEY în producție)
 const resend = new Resend("re_X51pLGA8_46DXTWpFftSuzKkwQNnPb4KM");
 
-// Această funcție primește datele din formular și ID-ul clientului logat
-export async function createInspection(formData: FormData, clientId: string) {
-  const carUrl = formData.get("carUrl") as string;
-  const carMake = formData.get("carMake") as string;
-  const carModel = formData.get("carModel") as string;
-  const location = formData.get("location") as string;
-
-  if (!carUrl || !location) {
+// =========================================================================
+// 1. Funcția prin care Clientul adaugă o mașină nouă (și consumă un credit)
+// =========================================================================
+export async function createInspection(data: {
+  carUrl: string;
+  carMake: string;
+  carModel: string;
+  location: string;
+  clientId: string;
+}) {
+  if (!data.carUrl || !data.location) {
     return { error: "Link-ul și locația sunt obligatorii!" };
   }
 
   try {
-    const newInspection = await prisma.inspection.create({
-      data: {
-        carUrl,
-        carMake,
-        carModel,
-        location,
-        clientId: clientId,
-        status: "PENDING",
-      },
+    // 1. Verificăm creditele utilizatorului
+    const user = await prisma.user.findUnique({
+      where: { id: data.clientId },
     });
 
-    // RETURNĂM ID-UL PENTRU STRIPE AICI
+    if (!user || user.credits < 1) {
+      return {
+        error:
+          "Nu ai suficiente credite pentru a adăuga o mașină. Te rugăm să achiziționezi un pachet.",
+      };
+    }
+
+    // 2. Facem Tranzacția (scădem creditul ȘI adăugăm mașina direct ca PLĂTITĂ)
+    const [newInspection, updatedUser] = await prisma.$transaction([
+      prisma.inspection.create({
+        data: {
+          carUrl: data.carUrl,
+          carMake: data.carMake,
+          carModel: data.carModel,
+          location: data.location,
+          clientId: data.clientId,
+          status: "PENDING",
+          paymentStatus: "PAID", // <--- SETĂM DIRECT CA PLĂTIT!
+        },
+      }),
+      prisma.user.update({
+        where: { id: data.clientId },
+        data: { credits: { decrement: 1 } }, // <--- SCĂDEM UN CREDIT!
+      }),
+    ]);
+
     return { success: true, inspectionId: newInspection.id };
   } catch (error) {
+    console.error(error);
     return { error: "A apărut o eroare la salvarea cererii." };
   }
 }
+
+// =========================================================================
+// RESTUL FUNCȚIILOR RĂMÂN IDENTICE CU CE AVEAI ÎNAINTE
+// =========================================================================
+
 export async function getClientInspections(clientId: string) {
   try {
     const inspections = await prisma.inspection.findMany({
@@ -67,9 +93,6 @@ export async function getPendingInspections() {
   }
 }
 
-// =========================================================================
-// 2. Funcția prin care mecanicul acceptă / preia o inspecție + TRIMITE EMAIL
-// =========================================================================
 export async function acceptInspection(
   inspectionId: string,
   mechanicId: string,
@@ -77,19 +100,14 @@ export async function acceptInspection(
   try {
     const updatedInspection = await prisma.inspection.update({
       where: { id: inspectionId },
-      data: {
-        status: "ACCEPTED",
-        mechanicId: mechanicId,
-      },
-      // Avem nevoie de datele clientului ca să știm cui trimitem emailul
+      data: { status: "ACCEPTED", mechanicId: mechanicId },
       include: { client: true },
     });
 
-    // --- TRIMITEM EMAILUL CĂ MAȘINA A FOST PRELUATĂ ---
     if (updatedInspection.client.email) {
       await resend.emails.send({
-        from: "CarCheck <onboarding@resend.dev>", // Emailul de test Resend
-        to: updatedInspection.client.email, // Emailul clientului din baza ta de date
+        from: "CarCheck <onboarding@resend.dev>",
+        to: updatedInspection.client.email,
         subject: "🚗 Cererea ta a fost acceptată!",
         react: StatusEmail({
           userName: updatedInspection.client.fullName,
@@ -117,7 +135,7 @@ export async function getMechanicAcceptedInspections(mechanicId: string) {
     });
     return inspections;
   } catch (error) {
-    console.error("Eroare la aducerea inspecțiilor acceptate:", error);
+    console.error("Eroare:", error);
     return [];
   }
 }
@@ -137,9 +155,6 @@ export async function submitInspectionReport(
   }
 }
 
-// =========================================================================
-// 5. Funcția pentru trimiterea raportului complex + TRIMITE EMAIL
-// =========================================================================
 export async function submitDetailedReport(
   inspectionId: string,
   data: {
@@ -164,7 +179,6 @@ export async function submitDetailedReport(
       include: { client: true },
     });
 
-    // --- TRIMITEM EMAILUL CĂ RAPORTUL ESTE GATA ---
     if (updatedInspection.client.email) {
       await resend.emails.send({
         from: "CarCheck <onboarding@resend.dev>",
@@ -186,9 +200,7 @@ export async function submitDetailedReport(
     return { error: "Eroare la salvarea în baza de date." };
   }
 }
-// =========================================================================
-// 6. Funcția pentru a lăsa o recenzie mecanicului
-// =========================================================================
+
 export async function submitReview(
   inspectionId: string,
   mechanicId: string,
@@ -206,26 +218,20 @@ export async function submitReview(
     });
     return { success: "Recenzia a fost trimisă cu succes! Mulțumim!" };
   } catch (error) {
-    console.error("Eroare la salvarea recenziei:", error);
     return { error: "A apărut o eroare la salvarea recenziei." };
   }
 }
-// =========================================================================
-// 7. Funcția pentru a obține profilul și recenziile mecanicului
-// =========================================================================
+
 export async function getMechanicStats(mechanicId: string) {
   try {
     const reviews = await prisma.review.findMany({
       where: { mechanicId: mechanicId },
       include: {
-        inspection: {
-          include: { client: { select: { fullName: true } } },
-        },
+        inspection: { include: { client: { select: { fullName: true } } } },
       },
       orderBy: { createdAt: "desc" },
     });
 
-    // Calculăm media notelor
     const totalReviews = reviews.length;
     const averageRating =
       totalReviews > 0
@@ -234,11 +240,10 @@ export async function getMechanicStats(mechanicId: string) {
 
     return {
       reviews,
-      averageRating: parseFloat(averageRating.toFixed(1)), // ex: 4.8
+      averageRating: parseFloat(averageRating.toFixed(1)),
       totalReviews,
     };
   } catch (error) {
-    console.error("Eroare la preluarea recenziilor:", error);
     return { reviews: [], averageRating: 0, totalReviews: 0 };
   }
 }

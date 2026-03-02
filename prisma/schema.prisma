@@ -14,22 +14,27 @@ model User {
   fullName       String
   phone          String?
   role           String       @default("CLIENT")
+  
+  // --- NOU: Credite pentru pachetele de verificări ---
+  credits        Int          @default(0)
+  
   createdAt      DateTime     @default(now())
   
   // Relații existente
   clientOrders   Inspection[] @relation("ClientInspections")
   mechanicOrders Inspection[] @relation("MechanicInspections")
   
-  // --- NOU: Relația pentru Recenziile primite de mecanic ---
+  // Relația pentru Recenziile primite de mecanic
   reviews        Review[]     @relation("MechanicReviews")
 }
 
 model Inspection {
   id               String   @id @default(uuid())
+  
   carUrl           String
   carMake          String?
   carModel         String?
-  price            Int?     @default(150) // Setăm prețul standard de 150 RON
+  price            Int?     @default(150)
   status           String   @default("PENDING")
   location         String
   
@@ -48,14 +53,13 @@ model Inspection {
   review           Review?
 
   // --- NOU PENTRU STRIPE ---
-  stripeSessionId  String?  @unique
-  paymentStatus    String   @default("UNPAID") // Va deveni "PAID" după plata cu succes
+  stripeSessionId  String?
+  paymentStatus    String   @default("UNPAID")
   // -------------------------
 
   createdAt        DateTime @default(now())
 }
 
-// --- NOU: MODELUL PENTRU RECENZII ---
 model Review {
   id           String     @id @default(uuid())
   rating       Int        // O notă de la 1 la 5

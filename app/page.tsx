@@ -26,13 +26,13 @@ export default function Home() {
               </span>
             </div>
             <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
-              <Link href="#" className="hover:text-blue-600 transition">
+              <Link href="#how" className="hover:text-blue-600 transition">
                 Cum funcționează
               </Link>
-              <Link href="#" className="hover:text-blue-600 transition">
+              <Link href="#pricing" className="hover:text-blue-600 transition">
                 Prețuri
               </Link>
-              <Link href="#" className="hover:text-blue-600 transition">
+              <Link href="#experts" className="hover:text-blue-600 transition">
                 Experți
               </Link>
               <Link
@@ -155,8 +155,147 @@ export default function Home() {
         </div>
       </section>
 
+      {/* --- PREȚURI / PACHETE (NOU) --- */}
+      <section
+        id="pricing"
+        className="py-24 bg-slate-50 border-t border-slate-200"
+      >
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold text-slate-900 sm:text-4xl mb-4">
+              Alege pachetul potrivit
+            </h2>
+            <div className="h-1 w-20 bg-blue-600 mx-auto rounded-full mb-6"></div>
+            <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+              Cumpără acum credite pentru verificări și folosește-le oricând
+              dorești. Fără dată de expirare!
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            {/* Pachet 1 */}
+            <div className="bg-white rounded-3xl p-8 border border-slate-200 hover:shadow-xl transition-all relative flex flex-col">
+              <h3 className="text-2xl font-bold text-slate-900 mb-2">
+                1 Verificare
+              </h3>
+              <p className="text-slate-500 mb-6 min-h-[48px]">
+                Perfect dacă ai găsit deja mașina visurilor tale.
+              </p>
+              <div className="text-4xl font-extrabold text-slate-900 mb-6">
+                150{" "}
+                <span className="text-lg text-slate-500 font-medium">RON</span>
+              </div>
+              <ul className="mb-8 space-y-3 flex-1">
+                <li className="flex items-center gap-2 text-slate-700">
+                  <CheckCircle className="w-5 h-5 text-blue-600" /> 1 Credit în
+                  cont
+                </li>
+                <li className="flex items-center gap-2 text-slate-700">
+                  <CheckCircle className="w-5 h-5 text-blue-600" /> Raport
+                  detaliat PDF
+                </li>
+                <li className="flex items-center gap-2 text-slate-700">
+                  <CheckCircle className="w-5 h-5 text-blue-600" /> Galerie Foto
+                  & Video
+                </li>
+              </ul>
+              <Link
+                href="/login"
+                className="w-full text-center px-6 py-4 bg-blue-50 text-blue-700 font-bold rounded-xl hover:bg-blue-100 transition"
+              >
+                Cumpără Pachetul
+              </Link>
+            </div>
+
+            {/* Pachet 2 - Recomandat */}
+            <div className="bg-blue-600 rounded-3xl p-8 shadow-2xl shadow-blue-200 transform md:-translate-y-4 relative flex flex-col text-white">
+              <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-yellow-400 text-yellow-900 font-bold px-4 py-1 rounded-full text-sm uppercase tracking-wide">
+                Cel Mai Popular
+              </div>
+              <h3 className="text-2xl font-bold mb-2">2 Verificări</h3>
+              <p className="text-blue-100 mb-6 min-h-[48px]">
+                Compară două oferte și fii sigur că iei decizia corectă.
+              </p>
+              <div className="text-4xl font-extrabold mb-6 flex items-end gap-2">
+                200{" "}
+                <span className="text-lg text-blue-200 font-medium">RON</span>
+                <span className="text-sm line-through text-blue-300 ml-2 mb-1">
+                  300 RON
+                </span>
+              </div>
+              <ul className="mb-8 space-y-3 flex-1">
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="w-5 h-5 text-blue-200" /> 2 Credite în
+                  cont
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="w-5 h-5 text-blue-200" /> Raport
+                  detaliat PDF
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="w-5 h-5 text-blue-200" /> Galerie Foto
+                  & Video
+                </li>
+                <li className="flex items-center gap-2 text-yellow-300 font-medium">
+                  <Star className="w-5 h-5 fill-current" /> Economisești 100 RON
+                </li>
+              </ul>
+              <Link
+                href="/login"
+                className="w-full text-center px-6 py-4 bg-white text-blue-600 font-bold rounded-xl hover:bg-slate-50 transition shadow-lg"
+              >
+                Cumpără Pachetul
+              </Link>
+            </div>
+
+            {/* Pachet 3 */}
+            <div className="bg-white rounded-3xl p-8 border border-slate-200 hover:shadow-xl transition-all relative flex flex-col">
+              <h3 className="text-2xl font-bold text-slate-900 mb-2">
+                3 Verificări
+              </h3>
+              <p className="text-slate-500 mb-6 min-h-[48px]">
+                Pentru cei nehotărâți. Testează mai multe modele!
+              </p>
+              <div className="text-4xl font-extrabold text-slate-900 mb-6 flex items-end gap-2">
+                250{" "}
+                <span className="text-lg text-slate-500 font-medium">RON</span>
+                <span className="text-sm line-through text-slate-400 ml-2 mb-1">
+                  450 RON
+                </span>
+              </div>
+              <ul className="mb-8 space-y-3 flex-1">
+                <li className="flex items-center gap-2 text-slate-700">
+                  <CheckCircle className="w-5 h-5 text-blue-600" /> 3 Credite în
+                  cont
+                </li>
+                <li className="flex items-center gap-2 text-slate-700">
+                  <CheckCircle className="w-5 h-5 text-blue-600" /> Raport
+                  detaliat PDF
+                </li>
+                <li className="flex items-center gap-2 text-slate-700">
+                  <CheckCircle className="w-5 h-5 text-blue-600" /> Galerie Foto
+                  & Video
+                </li>
+                <li className="flex items-center gap-2 text-green-600 font-medium">
+                  <Star className="w-5 h-5 fill-current" /> Economisești 200 RON
+                </li>
+              </ul>
+              <Link
+                href="/login"
+                className="w-full text-center px-6 py-4 bg-blue-50 text-blue-700 font-bold rounded-xl hover:bg-blue-100 transition"
+              >
+                Cumpără Pachetul
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* --- EXPERȚI --- */}
-      <section className="py-24 bg-slate-50">
+      <section
+        id="experts"
+        className="py-24 bg-white border-t border-slate-200"
+      >
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
             <div className="max-w-2xl">
@@ -203,10 +342,10 @@ export default function Home() {
             ].map((expert, i) => (
               <div
                 key={i}
-                className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 hover:shadow-xl transition"
+                className="bg-slate-50 p-6 rounded-3xl shadow-sm border border-slate-200 hover:shadow-xl transition"
               >
                 <div className="flex items-center gap-4 mb-6">
-                  <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center text-3xl">
+                  <div className="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center text-3xl">
                     {expert.emoji}
                   </div>
                   <div>
@@ -223,7 +362,7 @@ export default function Home() {
                     ({expert.reviews} recenzii)
                   </span>
                 </div>
-                <div className="p-4 bg-slate-50 rounded-xl italic text-sm text-slate-600">
+                <div className="p-4 bg-white rounded-xl italic text-sm text-slate-600 border border-slate-100">
                   "Foarte atent la detalii, a depistat km dați înapoi imediat."
                 </div>
               </div>
@@ -233,7 +372,7 @@ export default function Home() {
       </section>
 
       {/* --- CTA CARIERE --- */}
-      <section className="py-20 px-6">
+      <section className="py-20 px-6 bg-slate-50">
         <div className="max-w-5xl mx-auto bg-slate-900 rounded-[3rem] p-8 md:p-16 relative overflow-hidden shadow-2xl">
           <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/4 w-64 h-64 bg-blue-600/20 rounded-full blur-3xl"></div>
           <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-10">

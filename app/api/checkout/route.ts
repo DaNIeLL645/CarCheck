@@ -1,65 +1,63 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { PrismaClient } from "@prisma/client";
 
-// Inițializăm Stripe cu cheia ta secretă din .env
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  apiVersion: "2023-10-16", // Folosim o versiune stabilă a API-ului
+  apiVersion: "2023-10-16",
 });
-
-const prisma = new PrismaClient();
 
 export async function POST(req: Request) {
   try {
-    const { inspectionId } = await req.json();
+    // Acum primim ID-ul utilizatorului și câte credite vrea să cumpere
+    const { userId, credits } = await req.json();
 
-    // 1. Căutăm inspecția în baza de date
-    const inspection = await prisma.inspection.findUnique({
-      where: { id: inspectionId },
-    });
-
-    if (!inspection) {
-      return NextResponse.json(
-        { error: "Inspecția nu a fost găsită." },
-        { status: 404 },
-      );
+    if (!userId || !credits) {
+      return NextResponse.json({ error: "Date incomplete." }, { status: 400 });
     }
 
-    // 2. Creăm „factura” (Checkout Session) în Stripe
+    // Calculăm prețul în funcție de pachetul ales (1, 2 sau 3 credite)
+    let unitAmount = 0;
+    if (credits === 1)
+      unitAmount = 15000; // 150.00 RON
+    else if (credits === 2)
+      unitAmount = 20000; // 200.00 RON (Reducere 100 lei)
+    else if (credits === 3)
+      unitAmount = 25000; // 250.00 RON (Reducere 200 lei)
+    else {
+      return NextResponse.json({ error: "Pachet invalid." }, { status: 400 });
+    }
+
+    // Creăm Sesiunea de plată Stripe
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: [
         {
           price_data: {
-            currency: "ron", // Moneda: LEI
+            currency: "ron",
             product_data: {
-              name: `Verificare Auto: ${inspection.carMake || "Auto"} ${inspection.carModel || ""}`,
+              name: `Pachet ${credits} Verificăr${credits === 1 ? "e" : "i"} Auto`,
               description:
-                "Taxă standard pentru verificarea mașinii de către un mecanic CarCheck.",
+                "Creditele vor fi adăugate automat în contul tău CarCheck.",
             },
-            unit_amount: 15000, // Stripe folosește "bani" (cenți). 15000 = 150.00 RON
+            unit_amount: unitAmount,
           },
           quantity: 1,
         },
       ],
       mode: "payment",
-      // Unde îl trimitem după ce plătește cu succes sau dacă dă cancel
+      // Adăugăm metadata pentru a ști CUI îi dăm creditele când se confirmă plata
+      metadata: {
+        userId: userId,
+        creditsToAdd: credits.toString(),
+      },
       success_url: `http://localhost:3000/my-inspections?success=true`,
-      cancel_url: `http://localhost:3000/dashboard?canceled=true`,
+      cancel_url: `http://localhost:3000/my-inspections?canceled=true`,
     });
 
-    // 3. Salvăm ID-ul tranzacției în baza noastră de date ca să știm ce comandă a plătit
-    await prisma.inspection.update({
-      where: { id: inspectionId },
-      data: { stripeSessionId: session.id },
-    });
-
-    // Trimitem înapoi link-ul de plată pe care să dăm click
     return NextResponse.json({ url: session.url });
   } catch (error) {
-    console.error("Eroare la inițializarea plății:", error);
+    console.error("Eroare la checkout:", error);
     return NextResponse.json(
-      { error: "A apărut o eroare internă la plată." },
+      { error: "Eroare internă la plată." },
       { status: 500 },
     );
   }
