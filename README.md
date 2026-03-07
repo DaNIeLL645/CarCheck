@@ -1,36 +1,25 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🚗 CarCheck
 
-## Getting Started
+## 💡 Project Idea
+**CarCheck** is a comprehensive web platform dedicated to managing and streamlining the car inspection process. The application directly connects users who want a detailed vehicle check with authorized mechanics.
 
-First, run the development server:
+The main goal is to provide a transparent and digitized workflow: from creating an inspection request and securely paying for the service, to a mechanic taking over the car and generating a detailed official report.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## ✨ Key Features
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+* **Authentication & Role System:** Users can register and log in securely. The platform clearly distinguishes between clients (who request inspections) and mechanics (who have a dedicated dashboard to accept and complete tasks).
+* **Inspection Management:** Clients can submit new requests for car checks, track their status, and view their inspection history.
+* **Integrated Secure Payments:** The application uses Stripe to allow users to pay for inspection services quickly and securely directly within the platform.
+* **Automated PDF Reports:** Upon completion of an inspection, the system automatically generates a detailed technical report in PDF format, which can be downloaded by the client.
+* **File & Image Uploads:** Mechanics or users can upload relevant documents and photos regarding the car's condition, powered by UploadThing.
+* **Email Notifications:** The platform automatically sends transactional emails (e.g., inspection status updates) to maintain efficient communication between the client and the mechanic.
+* **Review System:** After the process is completed, clients have the opportunity to leave a review for the services provided.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🛠️ Tech Stack
+To support these features, the project is built on a modern technology stack:
+* **Frontend & Backend:** Next.js (App Router), React, TypeScript, Tailwind CSS
+* **Database / ORM:** Prisma
+* **Payments:** Stripe
+* **File Management:** UploadThing
+* **Emails:** Resend & React Email
+* **PDF Generation:** @react-pdf/renderer
