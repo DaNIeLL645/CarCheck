@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { getSession } from "next-auth/react";
 import { getClientInspections } from "@/actions/inspections";
 import { getUserCredits } from "@/actions/user";
@@ -9,7 +9,8 @@ import Link from "next/link";
 import DownloadPdfButton from "@/components/DownloadPdfButton";
 import ReviewForm from "@/components/ReviewForm";
 
-export default function MyInspectionsPage() {
+// 1. Componenta care conține logica principală
+function MyInspectionsContent() {
   const [inspections, setInspections] = useState<any[]>([]);
   const [credits, setCredits] = useState<number>(0);
   const [userId, setUserId] = useState<string>("");
@@ -22,11 +23,25 @@ export default function MyInspectionsPage() {
   useEffect(() => {
     async function fetchSessionAndData() {
       const session = await getSession();
+
+      // 1. Dacă nu e logat, la login
       if (!session) {
         router.push("/login");
         return;
       }
 
+      const role = (session.user as any).role;
+
+      // 2. Redirecționări automate bazate pe rol
+      if (role === "ADMIN") {
+        router.push("/admin");
+        return;
+      } else if (role === "MECHANIC") {
+        router.push("/mechanic-dashboard");
+        return;
+      }
+
+      // 3. Dacă este CLIENT normal, continuăm
       const id = (session.user as any).id;
       setUserId(id);
 
@@ -35,21 +50,17 @@ export default function MyInspectionsPage() {
       const isCanceled = searchParams.get("canceled");
 
       if (isSuccess) {
-        // 1. Așteptăm 3 secunde ca să fim 100% siguri că Webhook-ul a terminat de salvat în baza de date
         await new Promise((resolve) => setTimeout(resolve, 3000));
         alert("Plata a fost finalizată cu succes! Creditele au fost adăugate.");
-
-        // 2. FORȚĂM O REÎNCĂRCARE COMPLETĂ A PAGINII (Hard Reload)
-        // Asta distruge complet memoria cache a browserului!
         window.location.href = "/my-inspections";
-        return; // Oprim execuția aici, pagina se va reîncărca singură
+        return;
       } else if (isCanceled) {
         alert("Plata a fost anulată.");
         window.location.href = "/my-inspections";
         return;
       }
 
-      // Dacă este o accesare normală (nu venim de la plată), citim datele direct
+      // 4. Citim datele clientului
       const [inspectionsData, userCredits] = await Promise.all([
         getClientInspections(id),
         getUserCredits(id),
@@ -100,7 +111,7 @@ export default function MyInspectionsPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-5xl mx-auto">
-        {/* PORTFOLOFEL */}
+        {/* PORTOFEL */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-10">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div>
@@ -344,5 +355,20 @@ export default function MyInspectionsPage() {
         )}
       </div>
     </div>
+  );
+}
+
+// 2. Exportăm pagina principală învăluită în Suspense
+export default function MyInspectionsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-500">
+          Se încarcă pagina...
+        </div>
+      }
+    >
+      <MyInspectionsContent />
+    </Suspense>
   );
 }

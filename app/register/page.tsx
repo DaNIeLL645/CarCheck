@@ -3,97 +3,122 @@
 import { useState } from "react";
 import { registerUser } from "@/actions/auth";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import toast from "react-hot-toast";
 
 export default function RegisterPage() {
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  const [formData, setFormData] = useState({
+    fullName: "",
+    email: "",
+    phone: "",
+    password: "",
+  });
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  async function handleSubmit(formData: FormData) {
-    setError(null);
-    setSuccess(null);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    const toastId = toast.loading("Se creează contul...");
 
-    const result = await registerUser(formData);
+    // Trimitem doar datele necesare, FĂRĂ rol
+    const res = await registerUser(formData);
 
-    if (result?.error) {
-      setError(result.error);
-    } else if (result?.success) {
-      setSuccess(result.success);
-      setTimeout(() => {
-        router.push("/login");
-      }, 2000);
+    if (res.success) {
+      toast.success(res.success, { id: toastId });
+      router.push("/login");
+    } else {
+      toast.error(res.error || "Eroare la creare", { id: toastId });
+      setLoading(false);
     }
-  }
+  };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100">
-      <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md">
-        <h2 className="text-2xl font-bold text-center text-blue-600">
-          Creare Cont
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+      <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow-sm border border-gray-200">
+        <h2 className="text-2xl font-bold text-center text-gray-900 mb-8">
+          Creează un cont de Client
         </h2>
 
-        {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-        {success && (
-          <p className="text-green-500 text-sm text-center">{success}</p>
-        )}
-
-        <form action={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               Nume Complet
             </label>
             <input
               type="text"
-              name="fullName"
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+              value={formData.fullName}
+              onChange={(e) =>
+                setFormData({ ...formData, fullName: e.target.value })
+              }
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               Email
             </label>
             <input
               type="email"
-              name="email"
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+              value={formData.email}
+              onChange={(e) =>
+                setFormData({ ...formData, email: e.target.value })
+              }
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Telefon
+            </label>
+            <input
+              type="text"
+              required
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+              value={formData.phone}
+              onChange={(e) =>
+                setFormData({ ...formData, phone: e.target.value })
+              }
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               Parolă
             </label>
             <input
               type="password"
-              name="password"
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+              value={formData.password}
+              onChange={(e) =>
+                setFormData({ ...formData, password: e.target.value })
+              }
             />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Rol
-            </label>
-            <select
-              name="role"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="CLIENT">Client</option>
-              <option value="MECHANIC">Mecanic</option>
-            </select>
           </div>
 
           <button
             type="submit"
-            className="w-full py-2 font-bold text-white bg-blue-600 rounded-md hover:bg-blue-700"
+            disabled={loading}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition-colors disabled:opacity-50 mt-4"
           >
-            Înregistrează-te
+            {loading ? "Se încarcă..." : "Înregistrează-te"}
           </button>
         </form>
+
+        <p className="mt-6 text-center text-sm text-gray-500">
+          Ai deja cont?{" "}
+          <Link
+            href="/login"
+            className="text-blue-600 hover:underline font-medium"
+          >
+            Autentifică-te aici
+          </Link>
+        </p>
       </div>
     </div>
   );

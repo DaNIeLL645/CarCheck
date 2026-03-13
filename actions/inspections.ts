@@ -247,3 +247,38 @@ export async function getMechanicStats(mechanicId: string) {
     return { reviews: [], averageRating: 0, totalReviews: 0 };
   }
 }
+export async function cancelAndRefundInspection(inspectionId: string) {
+  try {
+    // 1. Găsim inspecția pentru a afla cine este clientul
+    const inspection = await prisma.inspection.findUnique({
+      where: { id: inspectionId },
+      include: { client: true },
+    });
+
+    if (!inspection) return { error: "Inspecția nu a fost găsită." };
+    if (inspection.status === "CANCELED")
+      return { error: "Această inspecție este deja anulată." };
+
+    // 2. Facem o tranzacție: Anulăm inspecția ȘI dăm creditul înapoi clientului
+    await prisma.$transaction([
+      prisma.inspection.update({
+        where: { id: inspectionId },
+        data: { status: "CANCELED" },
+      }),
+      prisma.user.update({
+        where: { id: inspection.clientId },
+        data: { credits: { increment: 1 } }, // Dăm înapoi 1 credit!
+      }),
+    ]);
+
+    // (Opțional) Aici ai putea trimite și un email clientului cu Resend să-l anunți
+    // că anunțul a expirat și și-a primit creditul înapoi.
+
+    return {
+      success: "Comanda a fost anulată și creditul a fost returnat clientului!",
+    };
+  } catch (error) {
+    console.error(error);
+    return { error: "Eroare la anularea comenzii." };
+  }
+}

@@ -3,8 +3,10 @@
 import { useState, useEffect } from "react";
 import { getSession } from "next-auth/react";
 import { getMechanicAcceptedInspections } from "@/actions/inspections";
+import { cancelAndRefundInspection } from "@/actions/inspections"; // <-- Importăm noua funcție
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import toast from "react-hot-toast";
 
 export default function MechanicTasksPage() {
   const [tasks, setTasks] = useState<any[]>([]);
@@ -12,21 +14,42 @@ export default function MechanicTasksPage() {
   const router = useRouter();
 
   useEffect(() => {
-    async function fetchSessionAndTasks() {
-      const session = await getSession();
-
-      if (!session || (session.user as any).role !== "MECHANIC") {
-        router.push("/");
-        return;
-      }
-
-      const mechanicId = (session.user as any).id;
-      const data = await getMechanicAcceptedInspections(mechanicId);
-      setTasks(data);
-      setLoading(false);
-    }
     fetchSessionAndTasks();
   }, [router]);
+
+  async function fetchSessionAndTasks() {
+    const session = await getSession();
+
+    if (!session || (session.user as any).role !== "MECHANIC") {
+      router.push("/");
+      return;
+    }
+
+    const mechanicId = (session.user as any).id;
+    const data = await getMechanicAcceptedInspections(mechanicId);
+    setTasks(data);
+    setLoading(false);
+  }
+
+  // Funcția care se apelează când mecanicul apasă pe butonul de anulare
+  const handleCancelTask = async (inspectionId: string) => {
+    const confirmCancel = window.confirm(
+      "Ești sigur că vrei să anulezi? Clientul își va primi creditul înapoi, iar comanda va dispărea din lista ta.",
+    );
+
+    if (!confirmCancel) return;
+
+    const toastId = toast.loading("Se anulează comanda...");
+    const res = await cancelAndRefundInspection(inspectionId);
+
+    if (res.success) {
+      toast.success(res.success, { id: toastId });
+      // Reîncărcăm lista de mașini (comanda anulată va dispărea)
+      fetchSessionAndTasks();
+    } else {
+      toast.error(res.error || "A apărut o eroare.", { id: toastId });
+    }
+  };
 
   if (loading) {
     return (
@@ -93,6 +116,20 @@ export default function MechanicTasksPage() {
                   >
                     🔗 Deschide anunțul original
                   </a>
+
+                  {/* Butonul de Anulare */}
+                  <div className="mt-6 pt-6 border-t border-gray-100">
+                    <button
+                      onClick={() => handleCancelTask(task.id)}
+                      className="text-red-600 text-sm font-bold hover:text-red-800 transition-colors flex items-center gap-2"
+                    >
+                      ❌ Anunț Inactiv / Mașină Vândută
+                    </button>
+                    <p className="text-xs text-gray-400 mt-1 leading-tight">
+                      Apasă aici dacă vânzătorul nu mai răspunde sau mașina s-a
+                      dat. Creditul se va returna clientului.
+                    </p>
+                  </div>
                 </div>
 
                 {/* Buton către pagina de raport complex */}
