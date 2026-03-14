@@ -231,8 +231,8 @@ function MyInspectionsContent() {
                       📍 {insp.location}
                     </p>
                   </div>
-                  <div className="text-right">
-                    <span className="text-sm text-gray-400 block mb-2">
+                  <div className="text-right flex flex-col items-end gap-2">
+                    <span className="text-sm text-gray-400 block">
                       {new Date(insp.createdAt).toLocaleDateString("ro-RO")}
                     </span>
                     <a
@@ -243,6 +243,16 @@ function MyInspectionsContent() {
                     >
                       Vezi anunțul original ↗
                     </a>
+
+                    {/* BUTONUL SPRE PAGINA DE RAPORT ȘI CHAT PENTRU CLIENT */}
+                    {insp.status !== "PENDING" && (
+                      <Link
+                        href={`/my-inspections/report/${insp.id}`}
+                        className="mt-2 inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+                      >
+                        💬 Deschide Detalii / Chat
+                      </Link>
+                    )}
                   </div>
                 </div>
 

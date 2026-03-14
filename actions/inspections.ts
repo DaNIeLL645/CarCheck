@@ -282,3 +282,32 @@ export async function cancelAndRefundInspection(inspectionId: string) {
     return { error: "Eroare la anularea comenzii." };
   }
 }
+export async function getInspectionById(id: string) {
+  try {
+    const inspection = await prisma.inspection.findUnique({
+      where: { id: id },
+      include: {
+        client: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+            phone: true,
+          },
+        },
+        mechanic: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+            phone: true,
+          },
+        },
+      },
+    });
+    return inspection;
+  } catch (error) {
+    console.error("Eroare la preluarea inspecției:", error);
+    return null;
+  }
+}
